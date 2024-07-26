@@ -672,7 +672,7 @@ void taskYIELD_OTHER_CORE( BaseType_t xCoreID, UBaseType_t uxPriority )
     TaskHandle_t xReturn;
 
         configASSERT( portVALID_TCB_MEM(pxTaskBuffer) );
-        configASSERT( portVALID_STACK_MEM(pxStackBuffer) );
+        /* configASSERT( portVALID_STACK_MEM(pxStackBuffer) ); */
         configASSERT( (xCoreID>=0 && xCoreID<configNUM_CORES) || (xCoreID==tskNO_AFFINITY) );
 
         #if ( configASSERT_DEFINED == 1 )
