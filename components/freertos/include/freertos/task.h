@@ -698,10 +698,14 @@ typedef enum
  * @endcond
  * \ingroup Tasks
  */
+#if 0
 #if ( portUSING_MPU_WRAPPERS == 1 )
     BaseType_t xTaskCreateRestricted( const TaskParameters_t * const pxTaskDefinition,
                                       TaskHandle_t * pxCreatedTask ) PRIVILEGED_FUNCTION;
 #endif
+#endif
+    BaseType_t xTaskCreateRestricted( const TaskParameters_t * const pxTaskDefinition,
+                                      TaskHandle_t * pxCreatedTask ) PRIVILEGED_FUNCTION;
 
 /**
  * @cond !DOC_EXCLUDE_HEADER_SECTION

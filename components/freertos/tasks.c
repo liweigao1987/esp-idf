@@ -763,7 +763,7 @@ void taskYIELD_OTHER_CORE( BaseType_t xCoreID, UBaseType_t uxPriority )
 
 #endif /* ( portUSING_MPU_WRAPPERS == 1 ) && ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
 /*-----------------------------------------------------------*/
-
+#if 0
 #if ( ( portUSING_MPU_WRAPPERS == 1 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) )
 
     BaseType_t xTaskCreateRestricted( const TaskParameters_t * const pxTaskDefinition,
@@ -813,6 +813,53 @@ void taskYIELD_OTHER_CORE( BaseType_t xCoreID, UBaseType_t uxPriority )
     }
 
 #endif /* portUSING_MPU_WRAPPERS */
+#endif
+BaseType_t xTaskCreateRestricted( const TaskParameters_t * const pxTaskDefinition,
+                                      TaskHandle_t * pxCreatedTask )
+    {
+        TCB_t * pxNewTCB;
+        BaseType_t xReturn = errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
+
+        configASSERT( pxTaskDefinition->puxStackBuffer );
+
+        if( pxTaskDefinition->puxStackBuffer != NULL )
+        {
+            /* Allocate space for the TCB.  Where the memory comes from depends
+             * on the implementation of the port malloc function and whether or
+             * not static allocation is being used. */
+            pxNewTCB = ( TCB_t * ) pvPortMallocTcbMem( sizeof( TCB_t ) );
+
+            if( pxNewTCB != NULL )
+            {
+                /* Store the stack location in the TCB. */
+                pxNewTCB->pxStack = pxTaskDefinition->puxStackBuffer;
+
+                #if ( tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE != 0 )
+                    {
+                        /* Tasks can be created statically or dynamically, so note
+                         * this task had a statically allocated stack in case it is
+                         * later deleted.  The TCB was allocated dynamically. */
+                        pxNewTCB->ucStaticallyAllocated = tskSTATICALLY_ALLOCATED_STACK_ONLY;
+                    }
+                #endif /* tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE */
+
+                prvInitialiseNewTask( pxTaskDefinition->pvTaskCode,
+                                      pxTaskDefinition->pcName,
+                                      ( uint32_t ) pxTaskDefinition->usStackDepth,
+                                      pxTaskDefinition->pvParameters,
+                                      pxTaskDefinition->uxPriority,
+                                      pxCreatedTask, pxNewTCB,
+                                      pxTaskDefinition->xRegions,
+                                      tskNO_AFFINITY );
+
+                prvAddNewTaskToReadyList( pxNewTCB, pxTaskDefinition->pvTaskCode, tskNO_AFFINITY);
+                xReturn = pdPASS;
+            }
+        }
+
+        return xReturn;
+    }
+
 /*-----------------------------------------------------------*/
 
 #if ( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
